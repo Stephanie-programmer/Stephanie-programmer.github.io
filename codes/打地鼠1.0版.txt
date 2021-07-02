@@ -1,0 +1,76 @@
+import pygame
+import random
+import math
+
+pygame.init()
+
+screen = pygame.display.set_mode((1000, 800))
+
+score_value = 0
+font = pygame.font.Font('freesansbold.ttf', 32)
+
+textX = 10
+textY = 10
+
+enemies = []
+
+NUM_COL = 2
+NUM_ROW = 2
+
+ENEMY_RADIUS = 150
+ENEMY_COLOR = (255, 0, 0)
+
+
+def get_pos_by_grid_ind(row, col):
+    return (200 + row * 400, 200 + col * 400)
+
+
+def generate_next_enemy_pos():
+    grid_index = random.randint(0, 3)
+    row = math.floor(grid_index / NUM_COL)
+    col = grid_index % NUM_COL
+    return get_pos_by_grid_ind(row, col)
+
+
+def draw_enemies():
+    for enemy in enemies:
+        pygame.draw.circle(screen, ENEMY_COLOR,
+                           (enemy[0], enemy[1]), ENEMY_RADIUS)
+
+
+def show_score(x, y):
+    global score_value
+    score = font.render("Score: " + str(score_value), True, (255, 255, 255))
+    screen.blit(score, (x, y))
+
+
+def check_enemy_collision(clickX, clickY, enemyX, enemyY):
+    distance = math.sqrt(math.pow(enemyX - clickX, 2) +
+                         (math.pow(enemyY - clickY, 2)))
+    return distance < ENEMY_RADIUS
+
+
+def check_enemies_collision(click_pos, enemies):
+    for enemy in enemies:
+        if check_enemy_collision(click_pos[0], click_pos[1], enemy[0], enemy[1]):
+            global score_value
+            score_value += 1
+            enemies.remove(enemy)
+
+
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.MOUSEBUTTONUP:
+            click_pos = pygame.mouse.get_pos()
+            check_enemies_collision(click_pos, enemies)
+
+    if pygame.time.get_ticks() % 3000 < 10:
+        enemies.append(generate_next_enemy_pos())
+
+    screen.fill((0, 0, 0))
+    draw_enemies()
+    show_score(textX, textY)
+    pygame.display.update()

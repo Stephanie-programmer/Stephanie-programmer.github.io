@@ -1,0 +1,83 @@
+<div>
+  <h1 class="Post-Title">留学温哥华——实习/coop面试</h1>
+  <div class="RichText ztext Post-RichText">
+    <p>前段时间我写了关于coop实习的两篇文章，分别讲述了做为在校生的我，实习求职的过程与工作经历，链接在文章最下方。今天这篇文章我主要想讲，我从几十次面试中总结出的经验与教训，主要以面试程序员工作的自身经历为主，希望可以帮到大家。
+    </p>
+    <p><b>Behavior Questions</b></p>
+    <p>程序员的面试一般分为三个部分，第一部分是behaviour question，主要问你的个人经历，职业规划，以及过去的工作或项目经验。比较常见的问题有：</p>
+    <ol>
+      <li>自我介绍：Tell me a bit about yourself.</li>
+      <li>应对困难：Give me an example of a time you faced a conflict while working on a team. How did you handle that? </li>
+      <li>工作积极性： Tell me about a time you did more than was required in your job. Why did you do it?</li>
+      <li>团队合作：Tell me about a time you needed to get information from someone who wasn’t very responsive. What did you
+        do?</li>
+      <li>时间管理：Describe a long-term project that you managed. How did you keep everything moving along in a timely
+        manner?</li>
+      <li>工作经历：Tell me about your job at XXX company. What is your favorite part and what is your least favorite part?
+      </li>
+    </ol>
+    <p><b>结合个人经历回答</b></p>
+    <p>在回答以上这些问题时，尽量用自己简历上的经历作为背景进行回答，比如在回答工作积极性相关的问题3（Tell me about a time you did more than was required in your job.
+      Why did you do
+      it?）时，你可说：“我在XXX公司实习时，在做一个YYY的任务，当时这项任务的要求是ZZZ，但是我发现如果只按照ZZZ的要求去做，会导致OOO损失，所以我向老板/经理汇报了我的发现，并提议做SSS，避免损失。最终通过我的方法，公司避免了TTT损失。从这次事件我意识到，我应该勇于反映问题，尽可能的提高工作质量。”这样回答即烘托了工作经验，也为你的回答进行了背景铺垫，体现出了在日常工作中的用处。
+    </p>
+    <p><b>START Method</b></p>
+    <p>在coop实习面试中，另外一种比较常见的behaviour question是根据你的简历询问相关的工作或课业项目。比如面试官会询问，你从之前的工作中都学到了什么，干了些什么。在回答这个问题时，我们可以用的面试技巧是start
+      method，start中的每个字母分别表示：</p>
+    <ul>
+      <li><b>S/T</b> <b>– S</b>ITUATION <b>or T</b>ASK （背景与任务）</li>
+      <li><b>A</b> <b>– A</b>CTION （处理方法）</li>
+      <li><b>R</b> <b>– R</b>ESULT （结果）</li>
+      <li><b>T</b> <b>– T</b>AKE AWAY （总结/学到的地方）</li>
+    </ul>
+    <p>以上题为例，</p>
+    <ul>
+      <li>S/T（背景与任务）背景对应的是“<i>我在XXX公司实习时，在做一个YYY的任务。“</i>任务对应的是<i>“当时这项任务的要求是ZZZ，但是我发现如果只按照ZZZ的要求去做，会导致OOO损失</i>“；</li>
+      <li>Action（处理方法）对应的是“<i>我向老板/经理汇报了我的发现，并提议做SSS，避免损失</i>”；</li>
+      <li>Result（结果）对应的是“最终通过我的方法，公司避免了TTT损失。”；</li>
+      <li>Take Away（总结）对应的是“<i>从这次事件我意识到，我应该勇于反映问题，尽可能的提高工作质量。</i>”</li>
+    </ul>
+    <p><b>Technical Questions</b></p>
+    <p>面试第二部分是technical question，对于程序员来说，这就是我们所熟悉的编码部分了，一般来讲一小时长的technical
+      interview，面试官会准备三道题，题的难度按照leetcode来说是简单、中等和中等题衍生出的难题，但难题一般很少有人有时间回答。在面试过程中，面试者可以选择任何热门编程语言，如java，c，python等等。而不大知名的编程语言，如Perl，CoffeeScript，Lua等不要轻易使用，除非此次面试是专门面向这些语言的。
+    </p>
+  </div>
+  <p>以我过去的一次面试为例，简单题是 </p><a href="https://leetcode.com/problems/product-of-array-except-self/">leetcode：Product of
+    Array Except
+    Self</a>
+  <p>给这道题留出的时间是半个小时，一般面试者要写出一个答案，然后解释给出答案的time和space
+    complexity。在写答案时，一定要及时与面试官沟通，把自己的想法说出来。这样面试官能够知道你的解题思路，并及时给予反馈，即使思路不对也能及时更正。如果面试者能在30分钟内答出，面试官就会鼓励面试者再想出更有效的解法，从而考验面试者的思维能力。
+  </p>
+  <p>以上题为例，可以有两种解法：</p>
+  <ol>
+    <li>每一个result array的element都对input array进行loop，解法的time complexity是O(n^2)</li>
+    <li>只loop一次input array，算出所有数的乘积，result array的element只需要除以对应的input array的element数字就可以了，解法的time
+      complexity是2n，也就是O(n)</li>
+  </ol>
+  <p>以leetcode：Rotting Oranges为例，题目给出：一个网格里有一个变质的橙子和一些新鲜橙子，变质橙子会每隔一分钟把周围的新鲜橙子传染致其变质。</p>
+  <a href="https://leetcode.com/problems/rotting-oranges/">leetcode：Rotting Oranges</a>
+  <p>如果是中等题，那么面试官会问：全部橙子有没有可能都变质，而高难度的题就会问：所有橙子变质要多长时间。这道题就涉及到data
+    structure，queue的应用，以及复杂问题的解题思路。在解出题后，面试官判断你写出的代码是不是clean code。如果没有达到要求，会要求你refactor代码，让代码尽量的简洁，干净，易懂。</p>
+  <p><b>Questions for Interviewer</b></p>
+  <p>在面试的最后，面试者可以向面试官提问，这时一定要抓住机会，尽量提问，显示出你对公司及职位的兴趣。以下是我认为有意义的问题，可以选两个比较关心的进行提问：</p>
+  <p>日常工作：</p>
+  <ol>
+    <li>What does a typical day look like?</li>
+    <li>Can you show me examples of projects I’d be working on?</li>
+    <li>What are the biggest challenges that someone in this position would face?</li>
+  </ol>
+  <p>职业发展：</p>
+  <ol>
+    <li>How will I be trained?</li>
+    <li>What training programs are available to your employees?</li>
+  </ol>
+  <p>所在团队：</p>
+  <ol>
+    <li>Can you tell me about the team I’ll be working with?</li>
+    <li>What are the next steps in the interview process?</li>
+  </ol>
+  <p class="ztext-empty-paragraph"><br></p>
+  <p>以上就是我总结的面试相关信息，希望能帮到大家。</p>
+  <p class="ztext-empty-paragraph"><br></p>
+  <p></p>
+</div>

@@ -1,0 +1,118 @@
+import pygame
+
+from dataclasses import dataclass
+
+pygame.init()
+
+screen = pygame.display.set_mode((1000, 500))
+
+@dataclass
+class Sprite:
+    position: tuple
+    velocity: tuple = (0,0)
+    acceleration: tuple = (0, 0)
+
+PLAYER_RADIUS = 25
+PLAYER_COLOR = (255, 0, 0)
+PLAYER_INITIAL_POS = (300, 475)
+player = Sprite(PLAYER_INITIAL_POS)
+PLAYER_JUMP_VELOCITY = (0, -300)
+GRAVITY = (0, 9.81)
+
+enemies = []
+ENEMY_COLOR=(0,0,225)
+ENEMY_WIDTH = 50
+ENEMY_HEIGHT = 80
+ENEMY_INITIAL_POS=(900,420)
+ENEMY_INITIAL_VELOCITY= (-140,0)
+
+GENERATE_ENEMY, APPEAR_INTERVAL = pygame.USEREVENT+1, 3*1000
+pygame.time.set_timer(GENERATE_ENEMY, APPEAR_INTERVAL)
+
+
+def add_tuple(a,b):
+    x = a[0]+b[0]
+    y = a[1]+b[1]
+    return (x, y)
+
+def subtract_tuple(a,b):
+    x = a[0]-b[0]
+    y = a[1]-b[1]
+    return (x, y)
+
+def times_tuple_constant(t,c):
+    x = t[0]*c
+    y = t[1]*c
+    return (x, y)
+
+def update_player(t_elapse):
+    # update position
+    diff = times_tuple_constant(player.velocity, t_elapse)
+    diff = add_tuple(diff, times_tuple_constant(player.acceleration, t_elapse**2/2))
+    player.position = add_tuple(player.position, diff)
+
+    # update velocity
+    player.velocity = add_tuple(player.velocity, times_tuple_constant(player.acceleration, t_elapse))
+
+    # update acceleration
+    if player.position[1] < PLAYER_INITIAL_POS[1]:
+        # if the player is jumping
+        player.acceleration=add_tuple(player.acceleration, GRAVITY)
+    if player.position[1] > PLAYER_INITIAL_POS[1]:
+        # if the player is below ground
+        player.position = PLAYER_INITIAL_POS
+        player.acceleration=(0,0)
+        player.velocity = (0,0)
+
+
+def update_enemies(t_elapse):
+    for enemy in enemies:
+        enemy.position = add_tuple(enemy.position, times_tuple_constant(enemy.velocity, t_elapse))
+
+
+def draw_player():
+    pygame.draw.circle(screen, PLAYER_COLOR, player.position, PLAYER_RADIUS)
+
+def draw_enemies():
+    for enemy in enemies:
+        pygame.draw.rect(screen, ENEMY_COLOR, enemy.position+(ENEMY_WIDTH, ENEMY_HEIGHT))
+
+def is_collide(e, p):
+    if player.position[1] + PLAYER_RADIUS > e.position[1]:
+        if p.position[0]-PLAYER_RADIUS <= e.position[0]<=p.position[0]+PLAYER_RADIUS:
+            return True
+        if p.position[0]-PLAYER_RADIUS <= e.position[0]+ENEMY_WIDTH<=p.position[0]+PLAYER_RADIUS:
+            return True
+    return False
+
+
+
+def check_enemies_player_collision():
+    for enemy in enemies:
+        if is_collide(enemy, player):
+            return True
+    return False
+
+
+running = True
+t_pre = pygame.time.get_ticks()
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+            player.velocity = add_tuple(player.velocity, PLAYER_JUMP_VELOCITY)
+        if event.type == GENERATE_ENEMY:
+            enemies.append(Sprite(ENEMY_INITIAL_POS, ENEMY_INITIAL_VELOCITY))
+
+
+    screen.fill((0,0,0))
+    t_cur = pygame.time.get_ticks()
+    update_enemies((t_cur-t_pre)*10**-3)
+    update_player((t_cur-t_pre)*10**-3)
+    if check_enemies_player_collision():
+        running=False
+    draw_player()
+    draw_enemies()
+    pygame.display.update()
+    t_pre=t_cur

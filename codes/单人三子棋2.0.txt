@@ -1,0 +1,311 @@
+# 井字游戏 （三连棋）
+import sys
+
+import numpy as np
+import pygame
+
+# 颜色 = (红, 绿, 蓝)
+WHITE = (242, 235, 211)
+BLACK = (75, 102, 99)
+BG_COLOR = (61, 189, 172)
+
+# 加载游戏背景图
+BG_IMG = pygame.image.load("BG_IMG.png")
+
+# 设置游戏窗口
+DIS_TO_BOUNDARY = 100  # 棋盘到游戏窗口的距离
+MATRIX_LEN = 3  # 棋盘是3乘3
+SQUARE_LEN = BG_IMG.get_width() / MATRIX_LEN  # 每个棋格的长度是棋盘长度除以棋格个数
+screen_len = BG_IMG.get_width() + 2 * DIS_TO_BOUNDARY  # 游戏窗口的大小是棋盘长度+2个棋盘到游戏窗口边缘的距离
+
+# 游戏结果
+WIN_STR = "WINNER!"  # 获胜
+DRAW_STR = "DRAW"  # 平手
+LOOSER_STR = "LOOSER"  # 失败
+
+# 初始游戏
+pygame.init()
+screen = pygame.display.set_mode((screen_len, screen_len))  # 设置游戏界面的大小
+
+# 游戏难度
+game_difficulty = "hard"
+
+
+def matrix_pos_to_screen_pos(row, col):
+    # 棋盘位置到游戏窗口位置
+    # 例子：左上角的棋格位置是0，0，游戏窗口位置是100，100
+    return (DIS_TO_BOUNDARY + col * SQUARE_LEN,
+            DIS_TO_BOUNDARY + row * SQUARE_LEN)
+
+
+def draw_chess_piece():
+    for row in range(len(board_matrix)):
+        for col in range(len(board_matrix[row])):
+            screen_pos = matrix_pos_to_screen_pos(row, col)
+            screen_pos = (screen_pos[0] + SQUARE_LEN / 2,
+                          screen_pos[1] + SQUARE_LEN / 2)
+            if board_matrix[row][col] == 1:  # 是黑棋
+                # pygame.draw.circle(游戏界面, 颜色, 位置, 半径)
+                pygame.draw.circle(screen, BLACK, screen_pos, SQUARE_LEN // 3)
+            if board_matrix[row][col] == -1:  # 是白棋
+                pygame.draw.circle(screen, WHITE, screen_pos, SQUARE_LEN // 3)
+
+
+def draw():
+    # 画画的顺序很重要，先运行的在最底下
+    screen.fill(BG_COLOR)  # 填充背景色
+    screen_pos = (DIS_TO_BOUNDARY, DIS_TO_BOUNDARY)
+    screen.blit(BG_IMG, screen_pos)  # 将棋盘的图片(BG_IMG)放在screen_pos (100,100)
+    draw_chess_piece()  # 画每个棋子
+    pygame.display.update()  # 更新游戏界面
+
+
+def init_game():
+    global board_matrix
+    board_matrix = np.zeros((MATRIX_LEN, MATRIX_LEN), dtype=int)  # 初始棋盘为空
+
+
+def in_chessboard_area(click_pos):
+    # 是否在合适的横向范围
+    is_in_width = DIS_TO_BOUNDARY <= click_pos[0] <= screen_len - \
+                  DIS_TO_BOUNDARY
+    # 是否在合适的纵向范围
+    is_in_height = DIS_TO_BOUNDARY <= click_pos[1] <= screen_len - \
+                   DIS_TO_BOUNDARY
+    return is_in_height and is_in_width
+
+
+def to_matrix_pos(pos):  # 游戏界面位置转化成棋盘位置
+    x = (pos[0] - DIS_TO_BOUNDARY) // SQUARE_LEN
+    y = (pos[1] - DIS_TO_BOUNDARY) // SQUARE_LEN
+    return int(x), int(y)
+
+
+def make_move(pos):
+    # 若点击位置为空，则放入黑子
+    if board_matrix[pos[1]][pos[0]] == 0:
+        board_matrix[pos[1]][pos[0]] = 1
+
+
+def is_player_turn(matrix):  # 是否玩家回合
+    result = np.count_nonzero(matrix == 0) % 2 == 1  # 棋盘矩阵里面如果数值为零的个数是奇数
+    return result
+
+
+def ai_make_move_easy():
+    # 找到第一个棋格为空的地方，放入白棋
+    for row in range(len(board_matrix)):
+        for col in range(len(board_matrix[row])):
+            if board_matrix[row][col] == 0:
+                board_matrix[row][col] = -1
+                return
+
+
+def make_move_if_two_in_row():
+    # 如果出现两个即将成成串的情况就堵住：横竖
+    for row in range(len(board_matrix)):
+        for col in range(len(board_matrix[row])):
+            if board_matrix[row, col] == 0 and (sum(board_matrix[row, :]) == 2 or sum(board_matrix[:, col]) == 2):
+                board_matrix[row, col] = -1
+                return
+    # 如果出现两个即将成成串的情况就堵住：对角线
+    top_left_diagonal = board_matrix[0, 0] + \
+                        board_matrix[1, 1] + board_matrix[2, 2]
+    top_right_diagonal = board_matrix[0, 2] + \
+                         board_matrix[1, 1] + board_matrix[2, 0]
+    if top_left_diagonal == 2:
+        if board_matrix[0, 0] == 0:
+            board_matrix[0, 0] = -1
+            return
+        elif board_matrix[1, 1] == 0:
+            board_matrix[1, 1] = -1
+            return
+        elif board_matrix[2, 2] == 0:
+            board_matrix[2, 2] = -1
+            return
+    elif top_right_diagonal == 2:
+        if board_matrix[0, 2] == 0:
+            board_matrix[0, 2] = -1
+            return
+        elif board_matrix[1, 1] == 0:
+            board_matrix[1, 1] = -1
+            return
+        elif board_matrix[2, 0] == 0:
+            board_matrix[2, 0] = -1
+            return
+
+
+def ai_make_move_medium():
+    num_chess = np.count_nonzero(board_matrix)
+    make_move_if_two_in_row()
+    if num_chess == np.count_nonzero(board_matrix):
+        # make_move_if_two_in_row 没有下棋
+        ai_make_move_easy()
+
+
+def get_all_possible_results_score(current_board_matrix):
+    all_possible_result_scores = []
+    # 如果现有棋子的数量小于棋格数，也就是说还有空棋格
+    if np.count_nonzero(current_board_matrix) < (MATRIX_LEN * MATRIX_LEN):
+        for row in range(len(current_board_matrix)):
+            for col in range(len(current_board_matrix)):
+                if current_board_matrix[row, col] == 0:
+                    # 每一个空棋格下棋
+                    new_board = np.copy(current_board_matrix)
+                    new_board[row, col] = 1 if is_player_turn(
+                        new_board) else -1
+                    results = [check_horizontal_win(new_board), check_vertical_win(new_board),
+                               check_diagonal_winner(new_board), check_draw(new_board)]
+                    # 检出是否有赢家
+                    if len([x for x in results if x == "W"]):
+                        # 如果黑子赢，分数是-10，因为是计算机在下棋所以不希望黑子赢。
+                        all_possible_result_scores.append(-10)
+                    elif len([x for x in results if x == "L"]):
+                        # 如果黑子输，分数是10，因为是计算机在下棋所以希望黑子输，白子赢。
+                        all_possible_result_scores.append(10)
+                    elif len([x for x in results if x == "D"]):
+                        # 如果平手，分数是0，因为不关心平手。
+                        all_possible_result_scores.append(0)
+                    else:
+                        # 如果还没有结果，那就继续计算下一步。
+                        all_possible_result_scores.extend(
+                            get_all_possible_results_score(new_board))
+    return all_possible_result_scores
+
+
+def ai_make_move_hard():
+    # num_chess现有的棋子数
+    num_chess = np.count_nonzero(board_matrix)
+    # 如果有两个即将成三个的情况就下棋
+    make_move_if_two_in_row()
+    # 如果现有的棋子数没有变化，则通过用brute force的方法计算出最优解。
+    if np.count_nonzero(board_matrix) == num_chess:
+        # max_score 是用来记录目前得分最高，也就是当前的最优解
+        # max_score[0]记录下一步棋的位置的，max_score[1]记录如果下一步棋在这里对应的分数
+        max_scores = ((-1, -1), -sys.maxsize - 1)
+        for row in range(len(board_matrix)):
+            for col in range(len(board_matrix)):
+                if board_matrix[row, col] == 0:
+                    # 对每一个空的棋格下棋，并计算其对应的分数
+                    new_board = np.copy(board_matrix)
+                    new_board[row, col] = -1
+                    score = sum(get_all_possible_results_score(new_board))
+                    # 如果分数大于现有最大分数，则更新下棋位置与分数
+                    if score > max_scores[1]:
+                        max_scores = ((row, col), score)
+        # 在分析完每一个空棋格的位置后，根据max_score[0]的位置下棋
+        board_matrix[max_scores[0][0], max_scores[0][1]] = -1
+
+
+def ai_make_move():
+    if game_difficulty == "easy":
+        ai_make_move_easy()
+    elif game_difficulty == "medium":
+        ai_make_move_medium()
+    else:
+        ai_make_move_hard()
+
+
+def should_restart():  # 是否从新开始
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONUP:
+                # 如果点击窗口，就从新开始
+                return True
+            if event.type == pygame.QUIT:
+                # 如果点击左上角退出键，就退出游戏
+                return False
+
+
+def display_end_game(result):
+    screen.fill(BG_COLOR)  # 填充背景色
+    font = pygame.font.Font(None, 70)  # 设置字体
+
+    # font.render(要显示的信息, 抗锯齿, 颜色)
+    winner_msg = font.render(result, True, BLACK)
+    # 在游戏界面的三分之一高度和三分之一宽度处显示字体
+    screen.blit(winner_msg, (screen_len / 3, screen_len / 3))
+    pygame.display.flip()  # 跟新游戏界面
+
+    if should_restart():
+        init_game()
+    else:
+        global running
+        running = False
+
+
+def check_horizontal_win(matrix):
+    #  横向检查，如果每行的总和为3，则玩家赢，如果是-3，玩家输
+    for row in matrix:
+        if sum(row) == 3:
+            return WIN_STR
+        elif sum(row) == -3:
+            return LOOSER_STR
+    return ""
+
+
+def check_vertical_win(matrix):
+    #  纵向检查，如果每列的总和为3，则玩家赢，如果是-3，玩家输
+    for col in range(MATRIX_LEN):
+        if sum(matrix[:, col]) == 3:
+            return WIN_STR
+        elif sum(matrix[:, col]) == -3:
+            return LOOSER_STR
+    return ""
+
+
+def check_diagonal_winner(matrix):
+    #  对角线检查，如果向下或向上对角线的总和为3，则玩家赢，如果是-3，玩家输
+    top_left_diagonal = matrix[0, 0] + matrix[1, 1] + matrix[2, 2]
+    top_right_diagonal = matrix[0, 2] + matrix[1, 1] + matrix[2, 0]
+    if top_left_diagonal == 3 or top_right_diagonal == 3:
+        return WIN_STR
+    elif top_left_diagonal == -3 or top_right_diagonal == -3:
+        return LOOSER_STR
+    return ""
+
+
+def check_draw(matrix):
+    # 如果每个棋盘都填满，则平手
+    if np.count_nonzero(matrix == 0) == 0:
+        return DRAW_STR
+    return ""
+
+
+def check_winner():
+    # [横向检查, 纵向检查, 对角线检查, 平手检查] 这个顺序很重要，决定了display_end_game(results[0])的正确性
+    results = [check_horizontal_win(board_matrix), check_vertical_win(board_matrix),
+               check_diagonal_winner(board_matrix), check_draw(board_matrix)]
+
+    results = [x for x in results if len(x) > 0]
+    if len(results) > 0:  # 如果results里面有值，那么游戏有结果了
+        display_end_game(results[0])  # 显示游戏最终结果
+
+
+def time_pause(current_time, elapse):
+    # 暂停elapse毫秒的时间
+    # 如果现在的时间（pygame.time.get_ticks()）小于初始时间（current_time）加间隔的时间（elapse）
+    while pygame.time.get_ticks() < current_time + elapse:
+        pass
+
+
+init_game()
+running = True
+while running:
+    draw()  # 跟新游戏界面
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:  # 用户点击左上角的退出
+            running = False  # 设定游戏为终止状态
+        if is_player_turn(board_matrix) and event.type == pygame.MOUSEBUTTONUP:  # 在玩家回合，玩家点击游戏界面
+            click_pos = pygame.mouse.get_pos()
+            if in_chessboard_area(click_pos):  # 点击位置在棋格里面
+                matrix_pos = to_matrix_pos(click_pos)
+                make_move(matrix_pos)  # 玩家下棋
+                draw()  # 跟新游戏界面
+                time_pause(pygame.time.get_ticks(), 1000)  # 游戏暂停1000毫秒
+                check_winner()  # 查看是否有胜利者
+    if not is_player_turn(board_matrix) and running:  # 电脑回合，并游戏正在运行
+        ai_make_move()  # 电脑下棋
+        draw()  # 跟新游戏界面
+        time_pause(pygame.time.get_ticks(), 1000)  # 游戏暂停1000毫秒
+        check_winner()  # 查看是否有胜利者
